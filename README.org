@@ -1,0 +1,5 @@
+* Biomine TV, the LISP incarnation
+** Prepare a core for easier launch
+  - sbcl --eval '(progn (push #P"~/path-to-object-system/" asdf:*central-registry*) (push #P"~/path-to-biomine-tv-lisp/" asdf:*central-registry*) (ql:quickload "biomine-tv") (sb-ext:save-lisp-and-die "tv.core" :purify t :compression t))'
+** Run with the created core
+   - sbcl --core tv.core --eval '(progn (biomine-tv::main "object-system-host" object-system-port))'
