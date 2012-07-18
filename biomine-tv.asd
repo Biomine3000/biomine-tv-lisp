@@ -4,4 +4,6 @@
 	       #:babel
 	       #:object-system
 	       #:mcclim)
-  :components ((:file "biomine-tv")))
+  :components ((:file "protocol"
+		      "biomine-tv"
+		      "text-client")))

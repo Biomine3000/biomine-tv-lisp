@@ -16,7 +16,8 @@
 	#:clim-lisp
 	#:usocket
 	#:bordeaux-threads
-	#:object-system)
+	#:object-system
+	#:tv-protocol)
   (:export :main))
 
 (in-package :biomine-tv)
@@ -51,16 +52,21 @@
 
 (define-presentation-method present (object (type business-object) stream view &key)
   (declare (ignore view))
-  (with-slots (object-type payload) object
+  (with-slots (object-type metadata payload) object
     (with-slots (content-type) object-type
       (let
 	  ((serializing-stream (make-string-output-stream :element-type 'character))
 	   (payload (if (and payload (textual-p object-type))
 			(babel:octets-to-string payload))))
-	(serialize object-type serializing-stream)
-	(format stream "Business Object of type ~s: ~:[NONDESCRIPT~;~a~]"
-		(get-output-stream-string serializing-stream)
-		(textual-p object-type) payload)))))
+	(if object-type
+	    (progn
+	      (serialize object-type serializing-stream)
+	      (format stream "Business Object of type ~s: ~:[NONDESCRIPT~;~a~]"
+		      (get-output-stream-string serializing-stream)
+		      (textual-p object-type) payload))
+	    (progn
+	      (format stream "Business Object ")
+	      (serialize-alist-metadata stream metadata)))))))
 
 (define-presentation-method present (object (type payload-size) stream view &key)
   (declare (ignore view))
@@ -116,6 +122,11 @@
 (define-tv-command (com-make-plaintext-object :name t) ((payload 'string))
   (let
       ((object (make-plaintext-business-object payload)))
+    (push object *object-cache*)))
+
+(define-tv-command (com-make-subscribe-object :name t) ()
+  (let
+      ((object (make-subscribe-object)))
     (push object *object-cache*)))
 
 (define-tv-command (com-send-business-object :name t) ((message-object 'business-object))
