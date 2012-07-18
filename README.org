@@ -1,14 +1,21 @@
 * Biomine TV, the LISP incarnation
 ** Prepare a core for faster launch
-   - #+BEGIN_EXAMPLE
+   #+BEGIN_EXAMPLE
 sbcl --eval '(progn (push #P"~/path-to-object-system/" asdf:*central-registry*)
                     (push #P"~/path-to-biomine-tv-lisp/" asdf:*central-registry*)
                     (ql:quickload "biomine-tv")
                     (sb-ext:save-lisp-and-die "tv.core" :purify t :compression t))'
-     #+END_EXAMPLE
+   #+END_EXAMPLE
 ** Run
-   =sbcl --core tv.core --eval '(progn (biomine-tv::main "object-system-host" object-system-port))'=
+   #+BEGIN_EXAMPLE
+sbcl --core tv.core --eval '(progn (biomine-tv::main "object-system-host" object-system-port))'
+   #+END_EXAMPLE
 
-   =sbcl --load ./biomine-tv --eval '(progn (biomine-tv::main "localhost" 7890))'=
+   #+BEGIN_EXAMPLE
+sbcl --load ./biomine-tv --eval '(progn (biomine-tv::main "localhost" 7890))'
+   #+END_EXAMPLE
 
-   =dx86cl --load ./biomine-tv --eval '(progn (biomine-tv::main "localhost" 7890))'=
+   #+BEGIN_EXAMPLE
+dx86cl --load ./biomine-tv --eval '(progn (biomine-tv::main "localhost" 7890))'
+   #+END_EXAMPLE
+
