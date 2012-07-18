@@ -18,4 +18,9 @@ sbcl --load ./biomine-tv --eval '(progn (biomine-tv::main "localhost" 7890))'
    #+BEGIN_EXAMPLE
 dx86cl --load ./biomine-tv --eval '(progn (biomine-tv::main "localhost" 7890))'
    #+END_EXAMPLE
-
+** Required libraries
+   You can run the following code in your REPL (Quicklisp required) to be able
+   to load biomine-tv.lisp.
+   #+BEGIN_EXAMPLE
+(ql:quickload '("bordeaux-threads" "mcclim" "usocket" "babel"))
+   #+END_EXAMPLE
