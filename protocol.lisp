@@ -13,12 +13,32 @@
 ;;;; OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 (defpackage #:tv-protocol
   (:use	#:common-lisp #:object-system)
-  (:export :make-subscribe-object))
+  (:export :make-subscribe-object
+	   :wait-for-reply-to))
 
 (in-package :tv-protocol)
 
 (defun make-subscribe-object (&key (receive-mode "all") (types "all"))
   (make-instance 'business-object
 		 :metadata `((:event . "routing/subscribe")
-			     (:receive-mode . ,receive-mode)
+			     ("receive-mode" . ,receive-mode)
 			     (:types . ,types))))
+
+(defun wait-for-reply-to (socket stream request-object &key (timeout-seconds 5))
+  (let ((started (/ (get-internal-real-time) internal-time-units-per-second)))
+    (loop
+       (when
+	   (< (+ started timeout-seconds) (/ (get-internal-real-time) internal-time-units-per-second))
+	 (return (values nil nil)))
+       (let
+	   ((ready-socket (usocket:wait-for-input socket :timeout 0.01 :ready-only t)))
+	 (when ready-socket
+	   (let*
+	       ((read-object (read-object stream))
+		(in-reply-to (cdr (assoc :in-reply-to (metadata read-object)))))
+	     ;; (format *error-output* "~S ~S ~S ~%" (id request-object) in-reply-to
+	     ;; 	     (string-equal (id request-object) in-reply-to))
+	     (when (string-equal (id request-object) in-reply-to)
+	       (return (values read-object (-
+					    (/ (get-internal-real-time) internal-time-units-per-second)
+					    started))))))))))
