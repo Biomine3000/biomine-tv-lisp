@@ -6,4 +6,5 @@
 	       #:mcclim)
   :components ((:file "protocol"
 		      "biomine-tv"
+		      "services"
 		      "text-client")))
