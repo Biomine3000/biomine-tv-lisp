@@ -51,7 +51,7 @@
    #+LISPWORKS (lispworks:environment-variable name)
    default))
 
-(defun main (host port)
+(defun main (&key (host "localhost") (port 7890))
   (format *error-output* "Trying to connect to server at ~a:~a~%" host port)
      (handler-case
 	 (connect-to-server host port
@@ -92,7 +92,7 @@
 				  (force-output stream)
 				  (format *error-output* "Sent client registration ~a~%" client-list)
 				  (multiple-value-bind (reply time-elapsed)
-					(wait-for-reply-to socket stream client-list)
+					(wait-for-reply-to socket stream client-registration)
 				    (if reply
 					(format *error-output*
 						"Received registration reply ~a in ~$~%"
@@ -103,12 +103,12 @@
 				  (force-output stream)
 				  (format *error-output* "Sent client list request ~a~%" client-list)
 				  (multiple-value-bind (reply time-elapsed)
-					(wait-for-reply-to socket stream client-list)
+				  	(wait-for-reply-to socket stream client-list)
 				    (if reply
-					(format *error-output*
-						"Received client list reply ~a in ~$~%"
-						reply time-elapsed)
-					(format *error-output* "No reply to client-list!~%"))))))
+				  	(format *error-output*
+				  		"Received client list reply ~a in ~$~%"
+				  		reply time-elapsed)
+				  	(format *error-output* "No reply to client-list!~%"))))))
        (usocket:connection-refused-error (cre)
 	 (format *error-output* "~a: bailing out!~%" cre))
        (usocket:timeout-error (toe)

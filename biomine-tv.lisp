@@ -17,13 +17,29 @@
 	#:usocket
 	#:bordeaux-threads
 	#:object-system
-	#:tv-protocol)
+	#:tv-services)
   (:export :main))
 
 (in-package :biomine-tv)
 
 (defun current-thread-name ()
   (thread-name (current-thread)))
+
+(defun getenv (name &optional default)
+  #+CMU
+  (let ((x (assoc name ext:*environment-list*
+		  :test #'string=)))
+    (if x (cdr x) default))
+  #-CMU
+  (or
+   #+Allegro (sys:getenv name)
+   #+CLISP (ext:getenv name)
+   #+ECL (si:getenv name)
+   #+SBCL (sb-unix::posix-getenv name)
+   #+ccl (ccl:getenv name)
+   #+LISPWORKS (lispworks:environment-variable name)
+   default))
+
 ;;;
 ;;; CLIM definitions
 ;;;
@@ -56,10 +72,11 @@
     (with-slots (content-type) object-type
       (let
 	  ((serializing-stream (make-string-output-stream :element-type 'character))
-	   (payload (if (and payload (textual-p object-type))
+	   (payload (if (and payload (and object-type (textual-p object-type)))
 			(babel:octets-to-string payload))))
 	(if object-type
 	    (progn
+
 	      (serialize object-type serializing-stream)
 	      (format stream "Business Object of type ~s: ~:[NONDESCRIPT~;~a~]"
 		      (get-output-stream-string serializing-stream)
@@ -127,6 +144,23 @@
 (define-tv-command (com-make-subscribe-object :name t) ()
   (let
       ((object (make-subscribe-object)))
+    (push object *object-cache*)))
+
+(define-tv-command (com-make-register-object :name t) ()
+  (let
+      ((object (make-service-call-object
+		"clients"
+		:parameters (acons :request "join"
+				   (acons :client (package-name :biomine-tv)
+					  (acons
+					   :user (getenv "USER") nil))))))
+    (push object *object-cache*)))
+
+(define-tv-command (com-make-list-clients-object :name t) ()
+  (let
+      ((object (make-service-call-object
+		"clients"
+		:parameters (acons :request "list" nil))))
     (push object *object-cache*)))
 
 (define-tv-command (com-send-business-object :name t) ((message-object 'business-object))
@@ -215,7 +249,7 @@
 	 (string-equal "ui-thread" (thread-name thread)))
 	(destroy-thread thread))))
 
-(defun main (host port)
+(defun main (&key (host "localhost") (port 7890))
   (let
       ((ui-thread (make-thread #'run-user-interface :name "ui-thread"))
        (network-thread (make-thread
